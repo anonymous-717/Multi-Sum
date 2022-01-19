@@ -27,81 +27,109 @@ This will create the source and target files for multilingual training within `X
 
 ## Training & Evaluation
 
-To see list of all available options, do `python pipeline.py -h`
-
 ### Multilingual training
-* For multilingual training on single GPU, a minimal example is as follows:
+* For multilingual private-share adapter training on a single GPU, an example is as follows:
 ```bash
-$ python pipeline.py \
-    --model_name_or_path "google/mt5-base" \
-    --data_dir "XLSum_input/multilingual" \
-    --output_dir "XLSum_output/multilingual" \
-    --lr_scheduler_type="transformer" \
-    --learning_rate=1 \
-    --warmup_steps 5000 \
-    --weight_decay 0.01 \ 
-    --per_device_train_batch_size=2 \
-    --gradient_accumulation_steps=16  \
-    --max_steps 50000 \
+$ python ./pipeline_adaptor.py \
+    --model_name_or_path #Model_Name_or_Path \
+    --data_dir #Data_Dir \
+    --output_dir #Output_Dir \
+    --learning_rate 1e-2 \
+    --gradient_accumulation_steps 4 \
+    --max_steps 75000 \
+    --logging_steps 100 \
     --save_steps 5000 \
-    --evaluation_strategy "no" \
-    --logging_first_step \
     --adafactor \
-    --label_smoothing_factor 0.1 \
-    --upsampling_factor 0.5 \
-    --do_train
-```
-* For multilingual training on multiple nodes / GPUs launch the script with `torch.distributed.launch`, i.e.
-```bash
-$ python -m torch.distributed.launch \
-    --nproc_per_node=<NPROC_PER_NODE> \
-    --nnodes=<NUM_NODES> \
-    --node_rank=<PROCID> \
-    --master_addr=<ADDR> \
-    --master_port=<PORT> \
-    pipeline.py ... 
-```
-To replicate our setup on 8 GPUs (4 nodes with 2 `NVIDIA TESLA P100` GPUs each) using SLURM, refer to [job.sh](job.sh) and [distributed_trainer.sh](distributed_trainer.sh) 
-
-### Per language training
-* Minimal training example (for example, on`Bengali`) on a single GPU is given below:
-```bash
-$ python pipeline.py \
-    --model_name_or_path "google/mt5-base" \
-    --data_dir "XLSum_input/individual/bengali" \
-    --output_dir "XLSum_output/individual/bengali" \
-    --lr_scheduler_type="linear" \
-    --learning_rate=5e-4 \
-    --warmup_steps 100 \
-    --weight_decay 0.01 \ 
-    --per_device_train_batch_size=2 \
-    --gradient_accumulation_steps=16  \
-    --num_train_epochs=10 \
-    --save_steps 100 \
+    --per_device_train_batch_size 8 \
+    --overwrite_output_dir \
     --predict_with_generate \
-    --evaluation_strategy "epoch" \
-    --logging_first_step \
-    --adafactor \
-    --label_smoothing_factor 0.1 \
     --do_train \
-    --do_eval
-```  
-Hyperparameters such as `warmup_steps` should be updated according to the language. For a detailed example, refer to [trainer.sh](trainer.sh)
+    --logging_first_step \
+    --upsampling_factor 0.5 \
+    --use_adaptor \
+    --weight_decay 0.01 \
+    --label_smoothing_factor 0.1 \
+    --not_freeze_lmodel \
+    --adaptor_mid_dim 300 \
+    --private_adapter \
+    --multi_languages #Languages \
+    --different_lr \
+    --learning_rate_LM 2e-4
+```
+* For multilingual private-share prefix training on a single GPU, an example is as follows:
+```bash
+$ python ./pipeline_prefix_tuning.py \
+    --model_name_or_path #Model_Name_or_Path \
+    --data_dir #Data_Dir \
+    --output_dir #Output_Dir  \
+    --predict_with_generate \
+    --per_device_train_batch_size 8 \
+    --use_encoder_prefix \
+    --use_self_prefix \
+    --use_cross_prefix \
+    --overwrite_output_dir \
+    --max_steps 75000 \
+    --logging_steps 100 \
+    --save_steps 5000 \
+    --do_train \
+    --learning_rate 1e-3 \
+    --preseqlen 200 \
+    --upsampling_factor 0.5 \
+    --logging_first_step \
+    --not_freeze_lmodel \
+    --adafactor \
+    --gradient_accumulation_steps 4 \
+    --weight_decay 0.01 \
+    --label_smoothing_factor 0.1 \
+    --multi_languages #Languages \
+    --private_prefix \
+    --mid_dim 200 \
+    --different_lr \
+    --learning_rate_LM 5e-5 
+```
+To replicate our setup on 4 GPUs using SLURM, refer to [ds_train_multilingual_private_share_adapter.sh](examples/ds_train_multilingual_private_share_adapter.sh) and [ds_train_multilingual_private_share_prefix.sh](examples/ds_train_multilingual_private_share_prefix.sh) 
 
-### Evaluation
-* To calculate rouge scores on test sets (for example on `Hindi`) using a trained model, use the following snippet:
+
+### Test
+* To calculate rouge scores on test sets (for example on `amharic`) using a trained multilingual private-share adapter model, use the following snippet:
 
 ```bash
-$ python pipeline.py \
-    --model_name_or_path <path/to/trained/model/directory> \
-    --data_dir "XLSum_input/individual/hindi" \
-    --output_dir "XLSum_output/individual/hindi" \
-    --rouge_lang "hindi" \ 
+$ python pipeline_adaptor.py \
+    --model_name_or_path #Model_Name_or_Path \
+    --data_dir #Data_Dir \
+    --output_dir #Output_Dir \
+    --rouge_lang "amharic" \
     --predict_with_generate \
-    --length_penalty 0.6 \
-    --no_repeat_ngram_size 2 \
-    --max_source_length 512 \
-    --test_max_target_length 84 \
-    --do_predict
+    --do_predict \
+    --per_device_eval_batch_size 16 \
+    --overwrite_output_dir \
+    --use_adaptor \
+    --adaptor_mid_dim 300 \
+    --private_adapter \
+    --multi_languages $Languages 
 ```
-For a detailed example, refer to [evaluate.sh](evaluate.sh)
+
+* To calculate rouge scores on test sets (for example on `amharic`) using a trained multilingual private-share prefix model, use the following snippet:
+
+```bash
+$ python pipeline_prefix_tuning.py \
+    --model_name_or_path google/mt5-base \
+    --prefixModel_name_or_path #Model_Name_or_Path \
+    --data_dir #Data_Dir \
+    --output_dir #Output_Dir \
+    --rouge_lang "amharic" \
+    --predict_with_generate \
+    --load_whole_model \
+    --do_predict \
+    --per_device_eval_batch_size 24 \
+    --overwrite_output_dir \
+    --use_cross_prefix \
+    --use_encoder_prefix \
+    --use_self_prefix \
+    --preseqlen 200 \
+    --mid_dim 200 \
+    --private_prefix \
+    --multi_languages $Languages
+```
+
+For a detailed example, refer to [ds_test_multilingual_private_share_adaptor.sh](examples/ds_test_multilingual_private_share_adaptor.sh) and [ds_test_multilingual_private_share_prefix.sh](examples/ds_test_multilingual_private_share_prefix.sh).
