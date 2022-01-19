@@ -106,7 +106,7 @@ $ python pipeline_adaptor.py \
     --use_adaptor \
     --adaptor_mid_dim 300 \
     --private_adapter \
-    --multi_languages $Languages 
+    --multi_languages #Languages 
 ```
 
 * To calculate rouge scores on test sets (for example on `amharic`) using a trained multilingual private-share prefix model, use the following snippet:
@@ -129,7 +129,7 @@ $ python pipeline_prefix_tuning.py \
     --preseqlen 200 \
     --mid_dim 200 \
     --private_prefix \
-    --multi_languages $Languages
+    --multi_languages #Languages
 ```
 
 For a detailed example, refer to [ds_test_multilingual_private_share_adaptor.sh](examples/ds_test_multilingual_private_share_adaptor.sh) and [ds_test_multilingual_private_share_prefix.sh](examples/ds_test_multilingual_private_share_prefix.sh).
