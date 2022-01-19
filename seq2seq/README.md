@@ -1,4 +1,4 @@
-We use a modified fork of [huggingface transformers](https://github.com/huggingface/transformers) for our experiments.
+We use a modified fork of [xl-sum](https://github.com/csebuetnlp/xl-sum#license) for our experiments.
 
 ## Setup
 
