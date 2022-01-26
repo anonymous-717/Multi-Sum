@@ -26,6 +26,132 @@ This will create the source and target files for multilingual training within `X
 
 
 ## Training & Evaluation
+### Single language training
+* For single language adapter-tuning on a single GPU, an example is as follows:
+```bash
+$ python pipeline_adaptor.py \
+    --model_name_or_path "google/mt5-base" \
+    --data_dir #DATA_DIR \
+    --output_dir #OUTPUT_DIR \
+    --learning_rate 1e-3 \
+    --num_train_epochs 15 \
+    --logging_steps 1000 \
+    --save_steps 1000 \
+    --eval_steps 1000 \
+    --adafactor \
+    --per_device_train_batch_size 8 \
+    --per_device_eval_batch_size 24  \
+    --overwrite_output_dir \
+    --evaluation_strategy "steps" \
+    --predict_with_generate \
+    --do_train \
+    --do_eval \
+    --rouge_lang "amharic" \
+    --logging_first_step \
+    --metric_for_best_model rouge2 \
+    --greater_is_better True \
+    --use_adaptor 
+```
+
+* For single language prefix-tuning on a single GPU, an example is as follows:
+```bash
+$ python ./pipeline_prefix_tuning.py \
+    --model_name_or_path  "google/mt5-base" \
+    --data_dir #DATA_DIR \
+    --output_dir #OUTPUT_DIR \
+    --rouge_lang "amharic" \
+    --predict_with_generate \
+    --per_device_train_batch_size 8 \
+    --per_device_eval_batch_size 24  \
+    --use_encoder_prefix \
+    --use_self_prefix \
+    --overwrite_output_dir \
+    --num_train_epochs 15 \
+    --logging_steps 1000 \
+    --save_steps 1000 \
+    --eval_steps 1000 \
+    --evaluation_strategy steps \
+    --do_train \
+    --do_eval \
+    --metric_for_best_model rouge2 \
+    --greater_is_better True \
+    --learning_rate 2e-4 \
+    --logging_first_step \
+    --adafactor 
+```
+
+* For single language full fine-tuning on a single GPU, an example is as follows:
+```bash
+$ python pipeline.py \
+    --model_name_or_path "google/mt5-base" \
+    --data_dir #DATA_DIR \
+    --output_dir  #OUTPUT_DIR \
+    --learning_rate 5e-4 \
+    --gradient_accumulation_steps 1 \
+    --num_train_epochs 15 \
+    --logging_steps 1000 \
+    --save_steps 1000 \
+    --eval_steps 1000 \
+    --adafactor \
+    --per_device_train_batch_size 8 \
+    --per_device_eval_batch_size 24  \
+    --overwrite_output_dir \
+    --evaluation_strategy "steps" \
+    --predict_with_generate \
+    --do_train \
+    --do_eval \
+    --rouge_lang "amharic" \
+    --logging_first_step \
+    --metric_for_best_model rouge2 \
+    --greater_is_better True 
+```
+For a detailed example, refer to [adapter_tuning_and_test.sh](examples/adapter_tuning_and_test.sh), [prefix_tuning_and_test.sh](examples/prefix_tuning_and_test.sh) and [full_fine_tuning_and_test](examples/full_fine_tuning_and_test.sh).
+
+### Single language test
+* To calculate rouge scores on test sets using a single language adapter-tuning model, use the following snippet:
+```bash
+$ python pipeline_adaptor.py \
+    --model_name_or_path #MODEL_NAME \
+    --data_dir #DATA_DIR \
+    --output_dir #OUTPUT_DIR \
+    --per_device_eval_batch_size 24 \
+    --overwrite_output_dir \
+    --predict_with_generate \
+    --do_predict \
+    --rouge_lang "amharic" \
+    --use_adaptor 
+```
+
+* To calculate rouge scores on test sets using a single language prefix-tuning model, use the following snippet:
+```bash
+$ python pipeline_prefix_tuning.py \
+    --model_name_or_path  #MODEL_NAME \
+    --prefixModel_name_or_path #PREFIX_MODEL_NAME \
+    --data_dir #DATA_DIR \
+    --output_dir #OUTPUT_DIR \
+    --load_whole_model \
+    --rouge_lang "amharic" \
+    --predict_with_generate \
+    --per_device_eval_batch_size 24 \
+    --do_predict \
+    --use_encoder_prefix \
+    --use_self_prefix \
+    --overwrite_output_dir 
+```
+
+* To calculate rouge scores on test sets using a single language full fine-tuning model, use the following snippet:
+```bash
+$ python pipeline.py \
+    --model_name_or_path #MODEL_NAME \
+    --data_dir #DATA_DIR \
+    --output_dir  #OUTPUT_DIR \
+    --per_device_eval_batch_size 24 \
+    --overwrite_output_dir \
+    --predict_with_generate \
+    --do_predict \
+    --rouge_lang "amharic"
+```
+For a detailed example, refer to [ds_test_multilingual_private_share_adaptor.sh](examples/ds_test_multilingual_private_share_adaptor.sh) and [ds_test_multilingual_private_share_prefix.sh](examples/ds_test_multilingual_private_share_prefix.sh).
 
 ### Multilingual training
 * For multilingual private-share adapter training on a single GPU, an example is as follows:
@@ -90,7 +216,7 @@ $ python ./pipeline_prefix_tuning.py \
 To replicate our setup on 4 GPUs using SLURM, refer to [ds_train_multilingual_private_share_adapter.sh](examples/ds_train_multilingual_private_share_adapter.sh) and [ds_train_multilingual_private_share_prefix.sh](examples/ds_train_multilingual_private_share_prefix.sh) 
 
 
-### Test
+### Multilingual Test
 * To calculate rouge scores on test sets (for example on `amharic`) using a trained multilingual private-share adapter model, use the following snippet:
 
 ```bash
