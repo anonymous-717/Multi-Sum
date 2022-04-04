@@ -3,8 +3,8 @@ We use a modified fork of [xl-sum](https://github.com/csebuetnlp/xl-sum#license)
 ## Setup
 
 ```bash
-$ git clone https://https://github.com/csebuetnlp/xl-sum
-$ cd xl-sum/seq2seq
+$ git clone https://github.com/anonymous-717/Multi-Sum.git
+$ cd Multi-Sum/seq2seq
 $ conda create python==3.7.9 pytorch==1.7.1 torchvision==0.8.2 torchaudio==0.7.2 cudatoolkit=10.2 -c pytorch -p ./env
 $ conda activate ./env # or source activate ./env (for older versions of anaconda)
 $ bash setup.sh 
