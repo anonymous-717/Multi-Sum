@@ -154,6 +154,28 @@ $ python pipeline.py \
 For a detailed example, refer to [ds_test_multilingual_private_share_adaptor.sh](examples/ds_test_multilingual_private_share_adaptor.sh) and [ds_test_multilingual_private_share_prefix.sh](examples/ds_test_multilingual_private_share_prefix.sh).
 
 ### Multilingual training
+* For multilingual training on a single GPU, an example is as follows:
+```bash
+$ python ./pipeline.py \
+    --model_name_or_path #Model_Name_or_Path \
+    --data_dir #Data_Dir \
+    --output_dir #Output_Dir \
+    --learning_rate 1e-3 \
+    --gradient_accumulation_steps 4 \
+    --max_steps 50000 \
+    --logging_steps 100 \
+    --save_steps 5000 \
+    --adafactor \
+    --per_device_train_batch_size 8 \
+    --overwrite_output_dir \
+    --predict_with_generate \
+    --do_train \
+    --logging_first_step \
+    --upsampling_factor 0.5 \
+    --weight_decay 0.01 \
+    --label_smoothing_factor 0.1 \
+```
+
 * For multilingual private-share adapter training on a single GPU, an example is as follows:
 ```bash
 $ python ./pipeline_adaptor.py \
@@ -213,10 +235,23 @@ $ python ./pipeline_prefix_tuning.py \
     --different_lr \
     --learning_rate_LM 5e-5 
 ```
-To replicate our setup on 4 GPUs using SLURM, refer to [ds_train_multilingual_private_share_adapter.sh](examples/ds_train_multilingual_private_share_adapter.sh) and [ds_train_multilingual_private_share_prefix.sh](examples/ds_train_multilingual_private_share_prefix.sh) 
+To replicate our setup on 4 GPUs using SLURM, refer to [distributed_trainer.sh](distributed_trainer.sh), [ds_train_multilingual_private_share_adapter.sh](examples/ds_train_multilingual_private_share_adapter.sh) and [ds_train_multilingual_private_share_prefix.sh](examples/ds_train_multilingual_private_share_prefix.sh) 
 
 
 ### Multilingual Test
+* To calculate rouge scores on test sets (for example on `amharic`) using a trained multilingual model, use the following snippet:
+```bash
+$ python pipeline.py \
+    --model_name_or_path #Model_Name_or_Path \
+    --data_dir #Data_Dir \
+    --output_dir #Output_Dir \
+    --rouge_lang "amharic" \
+    --predict_with_generate \
+    --do_predict \
+    --per_device_eval_batch_size 16 \
+    --overwrite_output_dir 
+```
+
 * To calculate rouge scores on test sets (for example on `amharic`) using a trained multilingual private-share adapter model, use the following snippet:
 
 ```bash
